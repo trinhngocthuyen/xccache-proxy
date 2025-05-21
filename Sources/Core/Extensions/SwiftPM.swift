@@ -151,12 +151,23 @@ extension TargetDescription.TargetKind {
 
 extension TargetDescription.Dependency {
   var desc: String {
+    pkgName.map { "\($0)/\(name)" } ?? name
+  }
+
+  var name: String {
     switch self {
-    case let .byName(name: name, condition: _), let .target(name: name, condition: _):
+    case
+      let .byName(name: name, condition: _),
+      let .target(name: name, condition: _),
+      let .product(name: name, package: _, moduleAliases: _, condition: _):
       return name
-    case let .product(name: name, package: pkgName, moduleAliases: _, condition: _):
-      if let pkgName { return "\(pkgName)/\(name)" }
-      return name
+    }
+  }
+
+  var pkgName: String? {
+    switch self {
+    case let .product(name: _, package: pkgName, moduleAliases: _, condition: _): pkgName
+    default: nil
     }
   }
 }
@@ -188,14 +199,9 @@ extension ModulesGraph {
       return product(for: name, pkgName: pkgName)
     case let .byName(name: name, condition: _):
       return product(for: name)
-    case let .target(name: name, condition: _):
+    case .target:
       return nil
     }
-  }
-
-  func recursiveDependencies(for identity: PackageIdentity) -> [ResolvedPackage] {
-    guard let pkg = package(for: identity) else { return [] }
-    return [pkg] + pkg.dependencies.flatMap { recursiveDependencies(for: $0) }
   }
 }
 

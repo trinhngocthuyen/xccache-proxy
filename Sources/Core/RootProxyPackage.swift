@@ -21,7 +21,6 @@ struct RootProxyPackage: ProxyPackageProtocol {
 
   func generate() throws {
     log.debug("Generate root proxy for: \(bare.id)")
-
     let proxy = try manifest.withChanges(
       pkgDir: pkgDir,
       dependencies: recursiveDependencies(),
@@ -35,17 +34,20 @@ struct RootProxyPackage: ProxyPackageProtocol {
     try pkgDir.appending("binaries").symlink(to: cache.dir)
   }
 
-  private func recursiveDependencies() -> [PackageDependency] {
-    manifest.dependencies.flatMap { dep in
-      return graph.recursiveDependencies(for: dep.identity).map { pkg -> PackageDependency in
-        .fileSystem(
-          identity: pkg.identity,
-          nameForTargetDependencyResolutionOnly: nil,
-          path: pkgDir.appending(components: [".proxies", pkg.slug]),
-          productFilter: dep.productFilter // FIXME: Hmm. What should be here???
-        )
+  private func recursiveDependencies() throws -> [PackageDependency] {
+    return graph
+      .reachableProducts
+      .filter { $0.packageIdentity != bare.identity }
+      .compactMap { graph.package(for: $0.packageIdentity) }
+      .unique()
+      .map { pkg in
+          .fileSystem(
+            identity: pkg.identity,
+            nameForTargetDependencyResolutionOnly: nil,
+            path: pkgDir.appending(components: [".proxies", pkg.slug]),
+            productFilter: .everything // FIXME: Hmm. What should be here???
+          )
       }
-    }.unique()
   }
 
   private func convert(_ this: TargetDescription) throws -> TargetDescription {
