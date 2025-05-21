@@ -10,17 +10,18 @@ extension ThrowingTaskGroup {
 
 extension Sequence {
   func toDictionary<Key: Hashable, Value>(_ transform: (Element) throws -> (Key, Value)) rethrows -> [Key: Value] {
-    Dictionary(uniqueKeysWithValues: try map(transform))
+    try Dictionary(uniqueKeysWithValues: map(transform))
   }
 }
 
 extension Sequence {
   func toArray() -> [Element] { Array(self) }
   func toSet<T: Hashable>(_ f: (Element) throws -> T) rethrows -> Set<T> {
-    return try map(f).toSet()
+    try map(f).toSet()
   }
+
   func unique<T: Hashable>(_ f: (Element) throws -> T) rethrows -> [T] {
-    return try toSet(f).toArray()
+    try toSet(f).toArray()
   }
 }
 

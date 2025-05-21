@@ -16,7 +16,7 @@ final class BinariesCache: @unchecked Sendable {
     try artifacts.forEach(createSymlinkToArtifact)
     self.modules = modules
     self.binaries = artifacts.toDictionary { p in (p.basenameWithoutExt, p) }
-    modules.forEach { name in
+    for name in modules {
       let xcframeworkPath = dir.appending(components: [name, "\(name).xcframework"])
       let macroPath = dir.appending(components: [name, "\(name).macro"])
       if let p = [xcframeworkPath, macroPath].first(where: { $0.exists() }) {

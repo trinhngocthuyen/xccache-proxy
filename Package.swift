@@ -20,14 +20,14 @@ let package = Package(
         .product(name: "Logging", package: "swift-log"),
         .product(name: "SwiftPM", package: "swift-package-manager"),
       ],
-      path: "Sources/Core"
+      path: "Sources/Core",
     ),
     .executableTarget(
       name: "XCCacheProxyCLI",
       dependencies: [
         "XCCacheProxy",
       ],
-      path: "Sources/CLI"
+      path: "Sources/CLI",
     ),
-  ]
+  ],
 )

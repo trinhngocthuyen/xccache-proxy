@@ -1,9 +1,9 @@
-import os
-import Foundation
 import Basics
-import PackageModel
-import PackageLoading
+import Foundation
+import os
 @preconcurrency import PackageGraph
+import PackageLoading
+import PackageModel
 @preconcurrency import Workspace
 
 struct RootProxyPackage: ProxyPackageProtocol {
@@ -25,7 +25,7 @@ struct RootProxyPackage: ProxyPackageProtocol {
       pkgDir: pkgDir,
       dependencies: recursiveDependencies(),
       products: manifest.products,
-      targets: manifest.targets.map(convert(_:))
+      targets: manifest.targets.map(convert(_:)),
     )
     try pkgDir.appending(".Sources").symlink(to: bare.path.appending(".Sources"))
     try proxy.write(to: pkgDir.appending("Package.swift"))
@@ -35,18 +35,18 @@ struct RootProxyPackage: ProxyPackageProtocol {
   }
 
   private func recursiveDependencies() throws -> [PackageDependency] {
-    return graph
+    graph
       .reachableProducts
       .filter { $0.packageIdentity != bare.identity }
       .compactMap { graph.package(for: $0.packageIdentity) }
       .unique()
       .map { pkg in
-          .fileSystem(
-            identity: pkg.identity,
-            nameForTargetDependencyResolutionOnly: nil,
-            path: pkgDir.appending(components: [".proxies", pkg.slug]),
-            productFilter: .everything // FIXME: Hmm. What should be here???
-          )
+        .fileSystem(
+          identity: pkg.identity,
+          nameForTargetDependencyResolutionOnly: nil,
+          path: pkgDir.appending(components: [".proxies", pkg.slug]),
+          productFilter: .everything, // FIXME: Hmm. What should be here???
+        )
       }
   }
 

@@ -1,9 +1,9 @@
-import os
-import Foundation
 import Basics
-import PackageModel
-import PackageLoading
+import Foundation
+import os
 @preconcurrency import PackageGraph
+import PackageLoading
+import PackageModel
 @preconcurrency import Workspace
 
 protocol ProxyPackageProtocol {
@@ -39,28 +39,28 @@ struct ProxyPackage: ProxyPackageProtocol {
       pkgDir: pkgDir,
       dependencies: manifest.dependencies.map(convert(_:)),
       products: products,
-      targets: targets
+      targets: targets,
     )
     try proxy.write(
       to: pkgDir.appending("Package.swift"),
-      additionalImportModuleNames: manifest.hasMacro() ? ["CompilerPluginSupport"] : []
+      additionalImportModuleNames: manifest.hasMacro() ? ["CompilerPluginSupport"] : [],
     )
     try pkgDir.appending("src").symlink(to: bare.path)
     try pkgDir.appending("src.\(bare.slug)").symlink(to: bare.path)
   }
 
-  private func convert(_ this: PackageDependency) throws ->  PackageDependency {
+  private func convert(_ this: PackageDependency) throws -> PackageDependency {
     // If this dependency is not reachable -> don't transform it
     guard graph.package(for: this.identity) != nil else { return this }
     return .fileSystem(
       identity: this.identity,
       nameForTargetDependencyResolutionOnly: nil,
       path: pkgDir.parentDirectory.appending(this.nameForModuleDependencyResolutionOnly),
-      productFilter: this.productFilter
+      productFilter: this.productFilter,
     )
   }
 
-  private func convert(_ this: ProductDescription) throws ->  ProductDescription {
+  private func convert(_ this: ProductDescription) throws -> ProductDescription {
     // Only applicable to library (among library, executable, plugin)
     guard case .library = this.type else { return this }
 
@@ -74,7 +74,7 @@ struct ProxyPackage: ProxyPackageProtocol {
     return try .init(name: this.name, type: .library(.automatic), targets: modules)
   }
 
-  private func convert(_ this: TargetDescription) throws ->  TargetDescription {
+  private func convert(_ this: TargetDescription) throws -> TargetDescription {
     if let xcframeworkPath = cache.binaryPath(for: this.name) {
       let relativePath = xcframeworkPath.relative(to: proxiesDir.appending(bare.slug))
       return try .init(name: this.name, path: relativePath.pathString, type: .binary)

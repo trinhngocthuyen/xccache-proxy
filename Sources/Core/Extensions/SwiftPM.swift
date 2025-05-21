@@ -1,8 +1,8 @@
-import Foundation
 import Basics
-import TSCBasic
-import PackageModel
+import Foundation
 import PackageGraph
+import PackageModel
+import TSCBasic
 
 typealias AbsolutePath = Basics.AbsolutePath
 
@@ -11,10 +11,11 @@ extension URL {
     FileManager.default.enumerator(
       at: self,
       includingPropertiesForKeys: [.isDirectoryKey],
-      options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+      options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants],
     )?.compactMap { $0 as? URL } ?? []
   }
 }
+
 extension AbsolutePath {
   func subDirs() throws -> [AbsolutePath] {
     try asURL.subDirs().map { try .init(validating: $0.path()) }
@@ -57,9 +58,9 @@ extension Manifest {
     pkgDir: AbsolutePath,
     dependencies: [PackageDependency],
     products: [ProductDescription],
-    targets: [TargetDescription]
+    targets: [TargetDescription],
   ) -> Manifest {
-    return Manifest(
+    Manifest(
       displayName: displayName,
       path: pkgDir.appending(path.basename),
       packageKind: packageKind,
@@ -77,7 +78,7 @@ extension Manifest {
       dependencies: dependencies,
       products: products,
       targets: targets,
-      traits: traits
+      traits: traits,
     )
   }
 
@@ -89,7 +90,7 @@ extension Manifest {
     do {
       let content = try generateManifestFileContents(
         packageDirectory: pkgDir ?? path.parentDirectory,
-        additionalImportModuleNames: additionalImportModuleNames
+        additionalImportModuleNames: additionalImportModuleNames,
       )
       try filePath.parentDirectory.mkdir()
       try content.write(toFile: filePath.pathString, atomically: true, encoding: .utf8)
@@ -112,7 +113,7 @@ extension TargetDescription {
   func withChanges(
     path: String? = nil,
     dependencies: [TargetDescription.Dependency]? = nil,
-    settings: [TargetBuildSettingDescription.Setting]? = nil
+    settings: [TargetBuildSettingDescription.Setting]? = nil,
   ) throws -> TargetDescription {
     try TargetDescription(
       name: name,
@@ -130,7 +131,7 @@ extension TargetDescription {
       pluginCapability: pluginCapability,
       settings: settings ?? self.settings,
       checksum: checksum,
-      pluginUsages: pluginUsages
+      pluginUsages: pluginUsages,
     )
   }
 
@@ -160,7 +161,7 @@ extension TargetDescription.Dependency {
       let .byName(name: name, condition: _),
       let .target(name: name, condition: _),
       let .product(name: name, package: _, moduleAliases: _, condition: _):
-      return name
+      name
     }
   }
 
@@ -188,7 +189,7 @@ extension ModulesGraph {
       if let product = product(for: name, pkgName: pkgName) { return Array(product.modules) }
       log.warning("Cannot find module of: \(dep)")
     case let .target(name: name, condition: _), let .byName(name: name, condition: _):
-      if let module =  module(for: name) { return [module] }
+      if let module = module(for: name) { return [module] }
     }
     return []
   }
@@ -196,11 +197,11 @@ extension ModulesGraph {
   func product(for dep: TargetDescription.Dependency) -> ResolvedProduct? {
     switch dep {
     case let .product(name: name, package: pkgName, moduleAliases: _, condition: _):
-      return product(for: name, pkgName: pkgName)
+      product(for: name, pkgName: pkgName)
     case let .byName(name: name, condition: _):
-      return product(for: name)
+      product(for: name)
     case .target:
-      return nil
+      nil
     }
   }
 }
@@ -209,20 +210,21 @@ extension ResolvedModule {
   private func recursiveModules(
     includingSelf: Bool = true,
     successors: (Dependency
-  ) -> [ResolvedModule.Dependency]) throws -> [ResolvedModule] {
+    ) -> [ResolvedModule.Dependency],
+  ) throws -> [ResolvedModule] {
     let result = try topologicalSort(dependencies, successors: successors).compactMap(\.module)
     return includingSelf ? [self] + result : result
   }
 
   func recursiveModules(includingSelf: Bool = true, excludeMacros: Bool = false) throws -> [ResolvedModule] {
-    return try recursiveModules(includingSelf: includingSelf) { d in
+    try recursiveModules(includingSelf: includingSelf) { d in
       if excludeMacros, d.module?.type == .macro { return [] }
       return d.dependencies
     }
   }
 
   func recursiveSiblingModules(includingSelf: Bool = true) throws -> [ResolvedModule] {
-    return try recursiveModules(includingSelf: includingSelf) { d in
+    try recursiveModules(includingSelf: includingSelf) { d in
       d.dependencies.filter { $0.module?.id == self.id }
     }
   }

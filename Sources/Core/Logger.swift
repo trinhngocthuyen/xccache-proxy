@@ -1,11 +1,11 @@
-import Logging
 import Foundation
+import Logging
 
 private struct BasicLogHandler: LogHandler {
   var logLevel: Logger.Level = .debug
   var metadata: Logger.Metadata = [:]
   subscript(metadataKey metadataKey: String) -> Logger.Metadata.Value? {
-    get { return metadata[metadataKey] }
+    get { metadata[metadataKey] }
     set(newValue) { metadata[metadataKey] = newValue }
   }
 
