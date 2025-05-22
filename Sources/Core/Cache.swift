@@ -25,7 +25,7 @@ final class BinariesCache: @unchecked Sendable {
     }
   }
 
-  func hit(_ modules: [String]) -> Bool {
+  func hit(_ modules: String...) -> Bool {
     binaryModules.isSuperset(of: modules)
   }
 
