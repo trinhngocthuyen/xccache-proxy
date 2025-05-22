@@ -152,41 +152,58 @@ extension TargetDescription.TargetKind {
 
 extension TargetDescription.Dependency {
   var desc: String {
-    pkgName.map { "\($0)/\(name)" } ?? name
+    "\(pkgName ?? "")/\(name)"
   }
 
   var name: String {
     switch self {
     case
-      let .byName(name: name, condition: _),
-      let .target(name: name, condition: _),
-      let .product(name: name, package: _, moduleAliases: _, condition: _):
+      let .byName(name: name, _),
+      let .target(name: name, _),
+      let .product(name: name, _, _, _):
       name
     }
   }
 
   var pkgName: String? {
     switch self {
-    case let .product(name: _, package: pkgName, moduleAliases: _, condition: _): pkgName
+    case let .product(_, package: pkgName, _, _): pkgName
     default: nil
     }
+  }
+
+  var condition: PackageConditionDescription? {
+    switch self {
+    case
+      let .target(_, condition),
+      let .product(_, _, _, condition),
+      let .byName(_, condition):
+      condition
+    }
+  }
+
+  func relativeTo(pkg pkgName: String) -> Self {
+    self.pkgName == pkgName ? .target(name: name, condition: condition) : self
   }
 }
 
 extension ResolvedPackage {
   var slug: String { path.basename }
+  func localDependency(parent: AbsolutePath) -> PackageDependency {
+    .fileSystem(
+      identity: identity,
+      nameForTargetDependencyResolutionOnly: nil,
+      path: parent.appending(slug),
+      productFilter: .everything, // FIXME: Hmm. What should be here???
+    )
+  }
 }
 
 extension ModulesGraph {
-  func product(for name: String, pkgName: String?) -> ResolvedProduct? {
-    guard let pkgName, let pkg = package(for: .plain(pkgName)) else { return product(for: name) }
-    return pkg.products.first { $0.name == name }
-  }
-
   func modules(for dep: TargetDescription.Dependency) -> [ResolvedModule] {
     switch dep {
-    case let .product(name: name, package: pkgName, moduleAliases: _, condition: _):
-      if let product = product(for: name, pkgName: pkgName) { return Array(product.modules) }
+    case .product:
+      if let product = product(for: dep) { return product.modules.toArray() }
       log.warning("Cannot find module of: \(dep)")
     case let .target(name: name, condition: _), let .byName(name: name, condition: _):
       if let module = module(for: name) { return [module] }
@@ -197,12 +214,46 @@ extension ModulesGraph {
   func product(for dep: TargetDescription.Dependency) -> ResolvedProduct? {
     switch dep {
     case let .product(name: name, package: pkgName, moduleAliases: _, condition: _):
-      product(for: name, pkgName: pkgName)
+      guard let pkgName, let pkg = package(for: .plain(pkgName)) else { return product(for: name) }
+      return pkg.products.first { $0.name == name }
     case let .byName(name: name, condition: _):
-      product(for: name)
+      return product(for: name)
     case .target:
-      nil
+      return nil
     }
+  }
+
+  func recursiveModules(
+    for dependencies: [TargetDescription.Dependency],
+    excludeMacroDeps: Bool = false,
+  ) throws -> [ResolvedModule] {
+    try dependencies
+      .flatMap { d in modules(for: d) }
+      .flatMap { try $0.recursiveModules(excludeMacroDeps: excludeMacroDeps) }
+      .unique()
+  }
+
+  func recursiveProducts(
+    for dependencies: [TargetDescription.Dependency],
+    excludeMacros: Bool = false,
+  ) throws -> [ResolvedProduct] {
+    let products = dependencies.compactMap { product(for: $0) }
+    let recursive = try products
+      .flatMap(\.modules)
+      .flatMap { try $0.recursiveProducts(excludeMacroDeps: true) }
+      .filter { !(excludeMacros && $0.type == .macro) }
+    return (products + recursive).unique()
+  }
+
+  func recursiveTargetDependencies(
+    for dependencies: [TargetDescription.Dependency],
+    excludeMacros: Bool = false,
+  ) throws -> [TargetDescription.Dependency] {
+    try recursiveProducts(for: dependencies, excludeMacros: excludeMacros)
+      .compactMap { p -> TargetDescription.Dependency? in
+        guard let pkg = package(for: p.packageIdentity) else { return nil }
+        return .product(name: p.name, package: pkg.slug)
+      }
   }
 }
 
@@ -216,9 +267,16 @@ extension ResolvedModule {
     return includingSelf ? [self] + result : result
   }
 
-  func recursiveModules(includingSelf: Bool = true, excludeMacros: Bool = false) throws -> [ResolvedModule] {
+  func recursiveProducts(excludeMacroDeps: Bool = false) throws -> [ResolvedProduct] {
+    try topologicalSort(dependencies) { d in
+      if excludeMacroDeps, d.module?.type == .macro { return [] }
+      return d.dependencies
+    }.compactMap(\.product)
+  }
+
+  func recursiveModules(includingSelf: Bool = true, excludeMacroDeps: Bool = false) throws -> [ResolvedModule] {
     try recursiveModules(includingSelf: includingSelf) { d in
-      if excludeMacros, d.module?.type == .macro { return [] }
+      if excludeMacroDeps, d.module?.type == .macro { return [] }
       return d.dependencies
     }
   }
