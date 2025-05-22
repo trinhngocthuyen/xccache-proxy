@@ -61,5 +61,6 @@ package class ProxyGenerator {
         ).generate()
       }
     }
+    log.debug("✔ Done. Proxy manifest: \(outDir)/Package.swift")
   }
 }
