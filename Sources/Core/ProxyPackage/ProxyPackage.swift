@@ -42,11 +42,11 @@ struct ProxyPackage: ProxyPackageProtocol {
     // Only applicable to library (among library, executable, plugin)
     guard case .library = this.type else { return this }
 
-    // NOTE: Include all binary-cache dependencies into associated targets of this product
-    // Here, we can only include sibling targets (ie. within this package)
-    // FIXME: Hmmm. How about binary-cache across packages??? -> Taken care by RootProxyPackage
-
-    // NOTE: Binary macro doesnt have an associated binaryTarget
+    // Since `binaryTarget` cannot contain any `dependencies`, if target X depends on X1 and X2,
+    // we need to add X1 and X2 to product of X so that when binaries of X, X1 and X2 are shipped together.
+    //
+    // NOTE: Here we can only gather targets within this package. How about cross-package dependencies?
+    // -> They are taken care by RootProxyPackage so that, at the end, all is included
     let modules = try recursiveSiblingModules(for: this, excludeBinaryMacros: true).unique(\.name)
     return try .init(name: this.name, type: .library(.automatic), targets: modules)
   }
@@ -56,9 +56,6 @@ struct ProxyPackage: ProxyPackageProtocol {
       let relativePath = xcframeworkPath.relative(to: proxiesDir.appending(bare.slug))
       return try .init(name: this.name, path: relativePath.pathString, type: .binary)
     }
-
-    // FIXME: Include binaries of cross-package targets (for compilation) in case this target is not cache-hit
-
     return try this.withChanges(
       path: "src/\(this.srcPath)",
       dependencies: recursiveTargetDependencies(for: this),

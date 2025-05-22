@@ -12,6 +12,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.6.3")),
     .package(url: "https://github.com/swiftlang/swift-package-manager.git", branch: "swift-6.1-RELEASE"),
+    .package(url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "1.5.0")),
   ],
   targets: [
     .target(
@@ -19,6 +20,7 @@ let package = Package(
       dependencies: [
         .product(name: "Logging", package: "swift-log"),
         .product(name: "SwiftPM", package: "swift-package-manager"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ],
       path: "Sources/Core",
     ),
