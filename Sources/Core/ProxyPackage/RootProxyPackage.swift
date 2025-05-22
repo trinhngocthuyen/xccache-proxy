@@ -37,6 +37,9 @@ struct RootProxyPackage: ProxyPackageProtocol {
   }
 
   private func convert(_ this: TargetDescription) throws -> TargetDescription {
-    try this.withChanges(dependencies: recursiveTargetDependencies(for: this))
+    try this.withChanges(
+      dependencies: recursiveTargetDependencies(for: this),
+      settings: buildSettings(for: this),
+    )
   }
 }

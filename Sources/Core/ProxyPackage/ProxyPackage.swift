@@ -62,6 +62,7 @@ struct ProxyPackage: ProxyPackageProtocol {
     return try this.withChanges(
       path: "src/\(this.srcPath)",
       dependencies: recursiveTargetDependencies(for: this),
+      settings: buildSettings(for: this),
     )
   }
 }

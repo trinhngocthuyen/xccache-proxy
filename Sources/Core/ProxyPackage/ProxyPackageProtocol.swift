@@ -57,4 +57,12 @@ extension ProxyPackageProtocol {
     log.debug("🔨 Dependencies for \(this.name):\n\(dependenciesDesc)")
     return dependencies
   }
+
+  func buildSettings(for this: TargetDescription) throws -> [TargetBuildSettingDescription.Setting] {
+    let modules = try graph.recursiveModules(for: this.dependencies, excludeMacroDeps: true)
+    let macroFlags = modules
+      .compactMap { cache.binaryPath(for: $0.name, ext: "macro") }
+      .flatMap { p in ["-load-plugin-executable", "\(p.pathString)#\(p.basenameWithoutExt)"] }
+    return this.settings + [.init(tool: .swift, kind: .unsafeFlags(macroFlags), condition: nil)]
+  }
 }
