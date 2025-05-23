@@ -53,8 +53,8 @@ extension ProxyPackageProtocol {
       .recursiveTargetDependencies(for: this.dependencies, excludeMacros: true)
       .map { $0.relativeTo(pkg: manifest.slug) }
       .sorted { $0.desc.lowercased() < $1.desc.lowercased() } // Make it more readable
-    let dependenciesDesc = dependencies.map { "  - \($0.desc)" }.joined(separator: "\n")
-    log.debug("🔨 Dependencies for \(this.name):\n\(dependenciesDesc)")
+    let dependenciesDesc = dependencies.isEmpty ? "-" : dependencies.map(\.desc).joined(separator: ", ")
+    log.debug("🔗 Dependencies for \(this.name.cyan): \(dependenciesDesc)")
     return dependencies
   }
 

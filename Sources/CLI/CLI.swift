@@ -19,21 +19,27 @@ struct CLI: AsyncParsableCommand {
   @Option(name: [.customLong("bin")], help: "Path to the binaries dir")
   var binariesDir: String?
 
+  @Flag(name: .long, help: "Show more debugging information")
+  var verbose: Bool = false
+
   func run() async throws {
     do {
+      if verbose { log.setLevel(.debug) }
+
       try await ProxyGenerator(
         rootDir: getRootDir(),
         outDir: outDir,
         binariesDir: binariesDir,
       ).generate()
     } catch {
-      log.error("Error: \(error)")
+      log.error("Fail to generate proxy. Error: \(error)".bold)
+      throw error
     }
   }
 
-  private func getRootDir() throws -> String {
+  private func getRootDir() -> String {
     if let rootDir { return rootDir }
     if let rootDir = ProcessInfo.processInfo.environment["XCCACHE_PROXY_ROOT_DIR"] { return rootDir }
-    throw NSError(domain: "Missing rootDir", code: 1, userInfo: nil)
+    return URL.currentDirectory().path()
   }
 }

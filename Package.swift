@@ -10,17 +10,17 @@ let package = Package(
     .executable(name: "xccache-proxy-cli", targets: ["XCCacheProxyCLI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.6.3")),
     .package(url: "https://github.com/swiftlang/swift-package-manager.git", branch: "swift-6.1-RELEASE"),
     .package(url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "1.5.0")),
+    .package(url: "https://github.com/onevcat/Rainbow", .upToNextMajor(from: "4.1.0")),
   ],
   targets: [
     .target(
       name: "XCCacheProxy",
       dependencies: [
-        .product(name: "Logging", package: "swift-log"),
         .product(name: "SwiftPM", package: "swift-package-manager"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        .product(name: "Rainbow", package: "Rainbow"),
       ],
       path: "Sources/Core",
     ),
