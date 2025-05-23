@@ -37,9 +37,9 @@ struct CLI: AsyncParsableCommand {
     }
   }
 
-  private func getRootDir() -> String {
+  private func getRootDir() -> String? {
     if let rootDir { return rootDir }
     if let rootDir = ProcessInfo.processInfo.environment["XCCACHE_PROXY_ROOT_DIR"] { return rootDir }
-    return URL.currentDirectory().path()
+    return nil
   }
 }

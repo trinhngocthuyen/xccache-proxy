@@ -17,16 +17,19 @@ package class ProxyGenerator {
   private var graph: ModulesGraph!
 
   package init(
-    rootDir root: String,
+    rootDir root: String?,
     outDir out: String? = nil,
     binariesDir binaries: String? = nil
   ) throws {
-    self.rootDir = try .init(validating: root)
-    self.outDir = try out.map(AbsolutePath.init(validating:)) ?? rootDir.parentDirectory.appending("proxy")
+    func toAbsolutePath(_ string: String?, default: AbsolutePath) throws -> AbsolutePath {
+      try string.map { try AbsolutePath(validating: $0, relativeTo: .pwd()) } ?? `default`
+    }
+    self.rootDir = try toAbsolutePath(root, default: .pwd())
+    self.outDir = try toAbsolutePath(out, default: rootDir.parentDirectory.appending("proxy"))
     self.workspace = try Workspace(forRootPackage: self.rootDir)
     self.proxiesDir = self.outDir.appending(".proxies")
     self.cache = try BinariesCache(
-      dir: binaries.map(AbsolutePath.init(validating:)) ?? rootDir.parentDirectory.appending("binaries"),
+      dir: toAbsolutePath(binaries, default: rootDir.parentDirectory.appending("binaries")),
     )
   }
 

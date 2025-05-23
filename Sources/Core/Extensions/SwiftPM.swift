@@ -17,6 +17,10 @@ extension URL {
 }
 
 extension AbsolutePath {
+  static func pwd() throws -> Self {
+    try .init(validating: URL.currentDirectory().path())
+  }
+
   func subDirs() throws -> [AbsolutePath] {
     try asURL.subDirs().map { try .init(validating: $0.path()) }
   }
