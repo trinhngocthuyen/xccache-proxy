@@ -7,7 +7,7 @@ let package = Package(
   platforms: [.iOS(.v16), .macOS(.v14)],
   products: [
     .library(name: "XCCacheProxy", targets: ["XCCacheProxy"]),
-    .executable(name: "xccache-proxy-cli", targets: ["XCCacheProxyCLI"]),
+    .executable(name: "xccache-proxy", targets: ["XCCacheProxyCLI"]),
   ],
   dependencies: [
     .package(url: "https://github.com/swiftlang/swift-package-manager.git", branch: "swift-6.1-RELEASE"),
