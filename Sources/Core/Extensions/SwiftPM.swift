@@ -42,7 +42,14 @@ extension AbsolutePath {
 }
 
 extension ObservabilityScope {
-  static let logging = ObservabilitySystem { scope, diagnostic in log.debug("\(diagnostic)") }.topScope
+  static let logging = ObservabilitySystem { scope, diagnostic in
+    switch diagnostic.severity {
+    case .error: log.error(diagnostic.message)
+    case .warning: log.warning(diagnostic.message)
+    case .info: log.info(diagnostic.message)
+    case .debug: log.debug(diagnostic.message)
+    }
+  }.topScope
 }
 
 extension Manifest {
@@ -152,7 +159,7 @@ extension TargetDescription.TargetKind {
 
 extension TargetDescription.Dependency {
   var desc: String {
-    "\(pkgName ?? "")/\(name)"
+    pkgName.map { "\($0)/\(name)" } ?? name
   }
 
   var name: String {

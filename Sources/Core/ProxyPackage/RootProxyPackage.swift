@@ -22,7 +22,6 @@ struct RootProxyPackage: ProxyPackageProtocol {
   }
 
   func generate() throws {
-    log.debug("Generate root proxy for: \(bare.id)")
     let proxy = try manifest.withChanges(
       pkgDir: pkgDir,
       dependencies: recursiveDependencies(),

@@ -31,12 +31,22 @@ package class ProxyGenerator {
   }
 
   package func generate() async throws {
-    log.info("Umbrella dir: \(rootDir)")
-    log.info("Proxy dir: \(outDir)")
-    log.info("Loading graph...")
+    log.info("""
+    🔍 Loading graph...
+    ⏳ This might take a while for the first time. Subsequent runs should be faster\n
+    """.blue + """
+       Umbrella: \(rootDir)
+       Proxy: \(outDir)
+       Binaries: \(cache.dir)
+    """.dim)
 
     graph = try await workspace.loadPackageGraph(rootPath: rootDir, observabilityScope: .logging)
-    log.info("-> Loaded. \(graph.reachableModules.count) modules")
+
+    log.log(
+      format: "-> Loaded graph with %@, %@",
+      "\(graph.packages.count) packages".green,
+      "\(graph.reachableModules.count) modules".cyan,
+    )
 
     try cache.update(
       modules: graph.reachableModules.map(\.name),
@@ -61,6 +71,6 @@ package class ProxyGenerator {
         ).generate()
       }
     }
-    log.debug("✔ Done. Proxy manifest: \(outDir)/Package.swift")
+    log.info("✔ Proxy manifest: \(outDir)/Package.swift".bold.green)
   }
 }
