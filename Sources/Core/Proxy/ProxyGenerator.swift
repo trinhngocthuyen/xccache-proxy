@@ -17,20 +17,15 @@ package class ProxyGenerator {
   private var graph: ModulesGraph!
 
   package init(
-    rootDir root: String?,
-    outDir out: String? = nil,
-    binariesDir binaries: String? = nil
+    rootDir: AbsolutePath,
+    outDir: AbsolutePath,
+    binariesDir: AbsolutePath,
   ) throws {
-    func toAbsolutePath(_ string: String?, default: AbsolutePath) throws -> AbsolutePath {
-      try string.map { try AbsolutePath(validating: $0, relativeTo: .pwd()) } ?? `default`
-    }
-    self.rootDir = try toAbsolutePath(root, default: .pwd())
-    self.outDir = try toAbsolutePath(out, default: rootDir.parentDirectory.appending("proxy"))
+    self.rootDir = rootDir
+    self.outDir = outDir
     self.workspace = try Workspace(forRootPackage: self.rootDir)
     self.proxiesDir = self.outDir.appending(".proxies")
-    self.cache = try BinariesCache(
-      dir: toAbsolutePath(binaries, default: rootDir.parentDirectory.appending("binaries")),
-    )
+    self.cache = BinariesCache(dir: binariesDir)
   }
 
   package func generate() async throws {
@@ -74,6 +69,6 @@ package class ProxyGenerator {
         ).generate()
       }
     }
-    log.info("✔ Proxy manifest: \(outDir)/Package.swift".bold.green)
+    log.info("-> Proxy manifest: \(outDir)/Package.swift".bold.green)
   }
 }

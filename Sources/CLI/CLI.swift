@@ -10,14 +10,17 @@ import XCCacheProxy
 
 @main
 struct CLI: AsyncParsableCommand {
-  @Option(name: [.customLong("in")], help: "Path to the umbrella package (default: current dir)")
-  var rootDir: String?
+  @Option(name: [.customLong("lockfile")], help: "Path to the lockfile", transform: toAbsolutePath)
+  var lockfilePath: AbsolutePath?
 
-  @Option(name: [.customLong("out")], help: "Path to the proxy packge")
-  var outDir: String?
+  @Option(name: [.customLong("umbrella")], help: "Path to the umbrella package", transform: toAbsolutePath)
+  var umbrellaDir: AbsolutePath
 
-  @Option(name: [.customLong("bin")], help: "Path to the binaries dir")
-  var binariesDir: String?
+  @Option(name: [.customLong("out")], help: "Path to the proxy packge", transform: toAbsolutePath)
+  var outDir: AbsolutePath
+
+  @Option(name: [.customLong("bin")], help: "Path to the binaries dir", transform: toAbsolutePath)
+  var binariesDir: AbsolutePath?
 
   @Flag(name: .long, help: "Show more debugging information")
   var verbose: Bool = false
@@ -26,10 +29,17 @@ struct CLI: AsyncParsableCommand {
     do {
       if verbose { log.setLevel(.debug) }
 
+      if let lockfilePath {
+        try await UmbrellaGenerator(
+          lockfilePath: lockfilePath,
+          umbrellaDir: umbrellaDir,
+        ).generate()
+      }
+
       try await ProxyGenerator(
-        rootDir: getRootDir(),
+        rootDir: umbrellaDir,
         outDir: outDir,
-        binariesDir: binariesDir,
+        binariesDir: binariesDir ?? umbrellaDir.parentDirectory.appending("binaries"),
       ).generate()
     } catch {
       log.error("Fail to generate proxy. Error: \(error)".bold)
@@ -37,9 +47,7 @@ struct CLI: AsyncParsableCommand {
     }
   }
 
-  private func getRootDir() -> String? {
-    if let rootDir { return rootDir }
-    if let rootDir = ProcessInfo.processInfo.environment["XCCACHE_PROXY_ROOT_DIR"] { return rootDir }
-    return nil
+  private static func toAbsolutePath(_ string: String) throws -> AbsolutePath {
+    try .init(validating: string, relativeTo: .pwd())
   }
 }
