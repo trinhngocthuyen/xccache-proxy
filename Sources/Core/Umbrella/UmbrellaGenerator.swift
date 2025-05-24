@@ -25,7 +25,7 @@ package class UmbrellaGenerator {
     log.info("🪄 Generating umbrella package...".blue)
 
     let manifest = try Manifest.create(
-      displayName: "xccache-umbrella",
+      displayName: "xccache",
       path: manifestPath,
       packageKind: .fileSystem(umbrellaDir),
       packageLocation: umbrellaDir.pathString,

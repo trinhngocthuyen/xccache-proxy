@@ -120,14 +120,14 @@ extension Manifest {
   }
 
   func withChanges(
-    pkgDir: AbsolutePath,
-    dependencies: [PackageDependency],
-    products: [ProductDescription],
-    targets: [TargetDescription],
+    pkgDir: AbsolutePath? = nil,
+    dependencies: [PackageDependency]? = nil,
+    products: [ProductDescription]? = nil,
+    targets: [TargetDescription]? = nil,
   ) -> Manifest {
     Manifest(
       displayName: displayName,
-      path: pkgDir.appending(path.basename),
+      path: pkgDir.map { $0.appending(path.basename) } ?? self.path,
       packageKind: packageKind,
       packageLocation: packageLocation,
       defaultLocalization: defaultLocalization,
@@ -140,9 +140,9 @@ extension Manifest {
       cLanguageStandard: cLanguageStandard,
       cxxLanguageStandard: cxxLanguageStandard,
       swiftLanguageVersions: swiftLanguageVersions,
-      dependencies: dependencies,
-      products: products,
-      targets: targets,
+      dependencies: dependencies ?? self.dependencies,
+      products: products ?? self.products,
+      targets: targets ?? self.targets,
       traits: traits,
     )
   }
