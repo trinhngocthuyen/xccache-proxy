@@ -3,8 +3,9 @@ import Foundation
 import PackageGraph
 import PackageModel
 import TSCBasic
+import struct TSCUtility.Version
 
-typealias AbsolutePath = Basics.AbsolutePath
+package typealias AbsolutePath = Basics.AbsolutePath
 
 extension URL {
   func subDirs() -> [URL] {
@@ -17,8 +18,17 @@ extension URL {
 }
 
 extension AbsolutePath {
-  static func pwd() throws -> Self {
+  package static func pwd() throws -> Self {
     try .init(validating: URL.currentDirectory().path())
+  }
+
+  func appending(relative component: String) -> AbsolutePath {
+    appending(components: component.split(separator: "/").map(String.init))
+  }
+
+  func touch() {
+    if exists() { return }
+    FileManager.default.createFile(atPath: pathString, contents: nil)
   }
 
   func subDirs() throws -> [AbsolutePath] {
@@ -33,9 +43,11 @@ extension AbsolutePath {
     try FileManager.default.removeItem(at: asURL)
   }
 
-  func mkdir() throws {
-    if exists() { return }
+  @discardableResult
+  func mkdir() throws -> Self {
+    if exists() { return self }
     try FileManager.default.createDirectory(at: asURL, withIntermediateDirectories: true)
+    return self
   }
 
   func symlink(to dst: AbsolutePath) throws {
@@ -63,6 +75,48 @@ extension Manifest {
 
   func hasMacro() -> Bool {
     targets.contains { $0.type == .macro }
+  }
+
+  static func create(
+    displayName: String,
+    path: AbsolutePath,
+    packageKind: PackageReference.Kind,
+    packageLocation: String,
+    defaultLocalization: String? = nil,
+    platforms: [PlatformDescription],
+    version: TSCUtility.Version? = nil,
+    revision: String? = nil,
+    toolsVersion: ToolsVersion = .current,
+    pkgConfig: String? = nil,
+    providers: [SystemPackageProviderDescription]? = nil,
+    cLanguageStandard: String? = nil,
+    cxxLanguageStandard: String? = nil,
+    swiftLanguageVersions: [SwiftLanguageVersion]? = nil,
+    dependencies: [PackageDependency] = [],
+    products: [ProductDescription] = [],
+    targets: [TargetDescription] = [],
+    traits: Set<TraitDescription> = [],
+  ) -> Manifest {
+    Manifest(
+      displayName: displayName,
+      path: path,
+      packageKind: packageKind,
+      packageLocation: packageLocation,
+      defaultLocalization: nil,
+      platforms: platforms,
+      version: version,
+      revision: revision,
+      toolsVersion: toolsVersion,
+      pkgConfig: pkgConfig,
+      providers: providers,
+      cLanguageStandard: cLanguageStandard,
+      cxxLanguageStandard: cxxLanguageStandard,
+      swiftLanguageVersions: swiftLanguageVersions,
+      dependencies: dependencies,
+      products: products,
+      targets: targets,
+      traits: traits,
+    )
   }
 
   func withChanges(
