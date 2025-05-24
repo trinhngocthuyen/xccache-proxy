@@ -9,7 +9,7 @@ import PackageModel
 @MainActor
 package class ProxyGenerator {
   let workspace: Workspace
-  let rootDir: AbsolutePath
+  let umbrellaDir: AbsolutePath
   let outDir: AbsolutePath
   let cache: BinariesCache
 
@@ -17,28 +17,28 @@ package class ProxyGenerator {
   private var graph: ModulesGraph!
 
   package init(
-    rootDir: AbsolutePath,
+    umbrellaDir: AbsolutePath,
     outDir: AbsolutePath,
     binariesDir: AbsolutePath,
   ) throws {
-    self.rootDir = rootDir
+    self.umbrellaDir = umbrellaDir
     self.outDir = outDir
-    self.workspace = try Workspace(forRootPackage: self.rootDir)
+    self.workspace = try Workspace(forRootPackage: umbrellaDir)
     self.proxiesDir = self.outDir.appending(".proxies")
     self.cache = BinariesCache(dir: binariesDir)
   }
 
   package func generate() async throws {
     log.info("""
-    🔍 Loading graph...
+    🔍 Loading umbrella graph...
     ⏳ This might take a while for the first time. Subsequent runs should be faster\n
     """.blue + """
-       Umbrella: \(rootDir)
+       Umbrella: \(umbrellaDir)
        Proxy: \(outDir)
        Binaries: \(cache.dir)
     """.dim)
 
-    graph = try await workspace.loadPackageGraph(rootPath: rootDir, observabilityScope: .logging)
+    graph = try await workspace.loadPackageGraph(rootPath: umbrellaDir, observabilityScope: .logging)
 
     log.log(
       format: "-> Loaded graph with %@, %@",

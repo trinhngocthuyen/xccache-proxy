@@ -37,7 +37,7 @@ struct CLI: AsyncParsableCommand {
       }
 
       try await ProxyGenerator(
-        rootDir: umbrellaDir,
+        umbrellaDir: umbrellaDir,
         outDir: outDir,
         binariesDir: binariesDir ?? umbrellaDir.parentDirectory.appending("binaries"),
       ).generate()
