@@ -1,8 +1,13 @@
 import Foundation
 import os
-import Rainbow
+@preconcurrency import Rainbow
 
-package nonisolated(unsafe) let log = Logger()
+package nonisolated(unsafe) let log = {
+  if ProcessInfo.processInfo.environment["FORCE_OUTPUT"] == "console" {
+    Rainbow.outputTarget = .console
+  }
+  return Logger()
+}()
 
 private class LogHandler {
   var level: Logger.Level = .info
