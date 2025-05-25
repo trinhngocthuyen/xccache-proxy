@@ -1,32 +1,25 @@
 import ArgumentParser
+import Foundation
 import XCCacheProxy
 
 extension CLI {
-  enum InputError: Error {
-    case missing(String)
-  }
-
-  struct GenProxy: AsyncParsableCommand, CommandRunning {
+  struct GenMetadata: AsyncParsableCommand, CommandRunning {
     @OptionGroup var parent: CLI
     var rootDir: AbsolutePath? { parent.rootDir }
 
     @Option(name: [.customLong("umbrella")], help: "Path to the umbrella package", transform: toAbsolutePath)
     var umbrellaDir: AbsolutePath?
 
-    @Option(name: [.customLong("out")], help: "Path to the proxy packge", transform: toAbsolutePath)
+    @Option(name: [.customLong("out")], help: "Path to the metadata dir", transform: toAbsolutePath)
     var outDir: AbsolutePath?
-
-    @Option(name: [.customLong("bin")], help: "Path to the binaries dir", transform: toAbsolutePath)
-    var binariesDir: AbsolutePath?
 
     func run() async throws {
       try await withLoggingError {
         parent.handleUniversalArgs()
 
-        try await ProxyGenerator(
+        try await MetadataGenerator(
           umbrellaDir: umbrellaDir ?? defaultSandboxDir(name: "umbrella"),
-          outDir: outDir ?? defaultSandboxDir(name: "proxy"),
-          binariesDir: binariesDir ?? defaultSandboxDir(name: "binaries"),
+          outDir: outDir ?? defaultSandboxDir(name: "metadata"),
         ).generate()
       }
     }
