@@ -29,3 +29,11 @@ extension Sequence where Element: Hashable {
   func toSet() -> Set<Element> { Set(self) }
   func unique() -> [Element] { toSet().toArray() }
 }
+
+extension Encodable {
+  func saveAsJSON(to url: URL) throws {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+    try encoder.encode(self).write(to: url)
+  }
+}

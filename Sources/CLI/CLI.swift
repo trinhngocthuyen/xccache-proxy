@@ -11,7 +11,11 @@ import XCCacheProxy
 @main
 struct CLI: AsyncParsableCommand, CommandRunning {
   nonisolated(unsafe) static var configuration = CommandConfiguration(
-    subcommands: [GenUmbrella.self, GenProxy.self],
+    subcommands: [
+      GenUmbrella.self,
+      GenProxy.self,
+      GenMetadata.self,
+    ],
   )
 
   @Option(name: [.customLong("root")], help: "Project root dir (default: current)", transform: toAbsolutePath)
