@@ -20,7 +20,7 @@ extension CLI {
         try await UmbrellaGenerator(
           lockfilePath: lockfilePath ?? projectRootDir().appending("xccache.lock"),
           umbrellaDir: outDir ?? defaultSandboxDir(name: "umbrella"),
-        ).generate()
+        ).run()
       }
     }
   }

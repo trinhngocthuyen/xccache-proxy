@@ -30,7 +30,7 @@ final class BinariesCache: @unchecked Sendable {
   }
 
   func binaryPath(for module: String, ext: String = "xcframework") -> AbsolutePath? {
-    guard let path = binaries[module], path.extension == ext else { return nil }
+    guard let path = binaries[module], path.extension == ext || ext == "*" else { return nil }
     return path
   }
 
