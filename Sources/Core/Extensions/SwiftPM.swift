@@ -314,11 +314,24 @@ extension ModulesGraph {
     for dependencies: [TargetDescription.Dependency],
     excludeMacros: Bool = false,
   ) throws -> [TargetDescription.Dependency] {
-    try recursiveProducts(for: dependencies, excludeMacros: excludeMacros)
+    // Dependencies can be: a sibling target, or a product of a downstream package.
+    // A downstream product can be implicitly declared by name.
+    // We're trying to resolve downstream products (both explicit & implicit) first.
+    // Sibling dependencies are determined by chosing implicit ones that are not in the downstream products.
+    // ----------------------------------------------------------------------------
+    // dependencies: [
+    //   "X1", // <-- sibling
+    //   "Y1", // <-- downstream, implicit
+    //   .product(name: "21", package: "Y"), // <-- downstream, explicit
+    // ]
+    // ----------------------------------------------------------------------------
+    let downstream = try recursiveProducts(for: dependencies, excludeMacros: excludeMacros)
       .compactMap { p -> TargetDescription.Dependency? in
         guard let pkg = package(for: p.packageIdentity) else { return nil }
         return .product(name: p.name, package: pkg.slug)
       }
+    let siblings = dependencies.filter { d in d.pkgName == nil && !downstream.contains(where: { $0.name == d.name }) }
+    return siblings + downstream
   }
 }
 
