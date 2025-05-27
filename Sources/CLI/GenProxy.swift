@@ -27,7 +27,7 @@ extension CLI {
           umbrellaDir: umbrellaDir ?? defaultSandboxDir(name: "umbrella"),
           outDir: outDir ?? defaultSandboxDir(name: "proxy"),
           binariesDir: binariesDir ?? defaultSandboxDir(name: "binaries"),
-        ).generate()
+        ).run()
       }
     }
   }

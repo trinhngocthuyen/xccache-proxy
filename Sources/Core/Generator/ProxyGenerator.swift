@@ -28,7 +28,7 @@ package class ProxyGenerator {
     self.cache = BinariesCache(dir: binariesDir)
   }
 
-  package func generate() async throws {
+  package func run() async throws {
     log.info("""
     🔍 Loading umbrella graph...
     ⏳ This might take a while for the first time. Subsequent runs should be faster\n
@@ -69,6 +69,7 @@ package class ProxyGenerator {
         ).generate()
       }
     }
+    try GraphGenerator(graph: graph, cache: cache, outPath: outDir.appending("graph.json")).generate()
     log.info("-> Proxy manifest: \(outDir)/Package.swift".bold.green)
   }
 }

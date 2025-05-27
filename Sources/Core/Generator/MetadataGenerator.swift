@@ -9,19 +9,23 @@ import struct TSCUtility.Version
 
 @MainActor
 package class MetadataGenerator {
-  let workspace: Workspace
-  let umbrellaDir: AbsolutePath
+  let graph: ModulesGraph?
+  let pkgDir: AbsolutePath
   let outDir: AbsolutePath
 
-  package init(umbrellaDir: AbsolutePath, outDir: AbsolutePath) throws {
-    self.umbrellaDir = umbrellaDir
-    self.workspace = try Workspace(forRootPackage: umbrellaDir)
+  package init(
+    graph: ModulesGraph? = nil,
+    pkgDir: AbsolutePath,
+    outDir: AbsolutePath,
+  ) throws {
+    self.pkgDir = pkgDir
     self.outDir = outDir
+    self.graph = graph
   }
 
-  package func generate() async throws {
+  package func run() async throws {
     log.info("🪄 Generating metadata...".blue)
-    let graph = try await workspace.loadPackageGraph(rootPath: umbrellaDir, observabilityScope: .logging)
+    let graph = try await loadGraph()
 
     try outDir.mkdir()
     await withThrowingTaskGroup(of: Void.self) { group in
@@ -35,5 +39,10 @@ package class MetadataGenerator {
       }
     }
     log.info("-> Metadata of packages: \(outDir)".bold.green)
+  }
+
+  private func loadGraph() async throws -> ModulesGraph {
+    if let graph { return graph }
+    return try await Workspace(forRootPackage: pkgDir).loadPackageGraph(rootPath: pkgDir, observabilityScope: .logging)
   }
 }

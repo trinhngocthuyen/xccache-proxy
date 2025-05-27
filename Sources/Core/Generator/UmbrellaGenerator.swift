@@ -21,7 +21,7 @@ package class UmbrellaGenerator {
     self.manifestPath = umbrellaDir.appending("Package.swift")
   }
 
-  package func generate() async throws {
+  package func run() async throws {
     log.info("🪄 Generating umbrella package...".blue)
 
     let manifest = try Manifest.create(

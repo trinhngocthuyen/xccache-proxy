@@ -14,7 +14,7 @@ struct CLI: AsyncParsableCommand, CommandRunning {
     subcommands: [
       GenUmbrella.self,
       GenProxy.self,
-      GenMetadata.self,
+      Resolve.self,
     ],
   )
 
