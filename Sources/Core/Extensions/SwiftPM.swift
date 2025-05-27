@@ -360,8 +360,15 @@ extension ResolvedModule {
   }
 
   func recursiveSiblingModules(includingSelf: Bool = true) throws -> [ResolvedModule] {
-    try recursiveModules(includingSelf: includingSelf) { d in
-      d.dependencies.filter { $0.module?.id == self.id }
+    try recursiveModules(includingSelf: includingSelf, excludeMacroDeps: true).filter { $0.id.pkgId == self.id.pkgId }
+  }
+
+  func directModules(excludeMacroDeps: Bool = false) throws -> [ResolvedModule] {
+    if excludeMacroDeps, type == .macro { return [] }
+    return dependencies.flatMap { d in
+      if let module = d.module { return [module] }
+      if let product = d.product { return product.modules.toArray() }
+      return []
     }
   }
 }
@@ -369,4 +376,12 @@ extension ResolvedModule {
 extension Sequence where Element: Identifiable {
   func toIdentifiableSet() -> IdentifiableSet<Element> { IdentifiableSet(self) }
   func unique() -> [Element] { Array(toIdentifiableSet()) }
+}
+
+extension ResolvedModule.ID {
+  // Workaround: to retrieve the internal value of `packageIdentity` for some computations/comparisons
+  // Otherwise, we need to obtain the `packageIdentity` from `graph`
+  var pkgId: String? {
+    Mirror(reflecting: self).children.first(where: { $0.label == "packageIdentity" }).map { "\($0)" }
+  }
 }
