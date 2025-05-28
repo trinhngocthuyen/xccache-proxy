@@ -18,7 +18,8 @@ let package = Package(
     .target(
       name: "XCCacheProxy",
       dependencies: [
-        .product(name: "SwiftPM", package: "swift-package-manager"),
+        // Use SwiftPM-auto (static) instead of SwiftPM (dynamic) to create a standalone binary
+        .product(name: "SwiftPM-auto", package: "swift-package-manager"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "Rainbow", package: "Rainbow"),
       ],
