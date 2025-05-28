@@ -22,7 +22,7 @@ package class UmbrellaGenerator {
   }
 
   package func run() async throws {
-    log.info("🪄 Generating umbrella package...".blue)
+    log.info("🪄  Generating umbrella package...".blue)
 
     let manifest = try Manifest.create(
       displayName: "xccache",
@@ -41,7 +41,7 @@ package class UmbrellaGenerator {
       let p = try umbrellaDir.appending(relative: target.srcPath).mkdir()
       p.appending("dummy.swift").touch()
     }
-    log.info("-> Umbrella manifest: \(manifestPath)".bold.green)
+    log.info("-> Umbrella manifest: \(manifestPath)".green)
   }
 
   private func platforms() -> [PlatformDescription] {
