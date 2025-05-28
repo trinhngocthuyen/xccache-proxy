@@ -24,6 +24,7 @@ struct ProxyPackage: ProxyPackageProtocol {
   func generate() throws {
     log.debug("📦 Generate proxy for: \(bare.id.description.green)")
 
+    try pkgDir.recreate()
     let proxy = try manifest.withChanges(
       pkgDir: pkgDir,
       dependencies: recursiveDependencies(),
@@ -34,8 +35,13 @@ struct ProxyPackage: ProxyPackageProtocol {
       to: pkgDir.appending("Package.swift"),
       additionalImportModuleNames: manifest.hasMacro() ? ["CompilerPluginSupport"] : [],
     )
-    try pkgDir.appending("src").symlink(to: bare.path)
-    try pkgDir.appending("src.\(bare.slug)").symlink(to: bare.path)
+    try pkgDir.appending(".src").symlink(to: bare.path)
+
+    // NOTE: This is a workaround to make dirs in a bare package show up in Xcode.
+    // It's very strange that dirs matching certain names are randomly hidden by Xcode.
+    try bare.path.subPaths().forEach { p in
+      try pkgDir.appending(components: ["pkg.root", p.basename]).symlink(to: p)
+    }
   }
 
   private func convert(_ this: ProductDescription) throws -> ProductDescription {
@@ -57,7 +63,7 @@ struct ProxyPackage: ProxyPackageProtocol {
       return try .init(name: this.name, path: relativePath.pathString, type: .binary)
     }
     return try this.withChanges(
-      path: "src/\(this.srcPath)",
+      path: ".src/\(this.srcPath)",
       dependencies: recursiveTargetDependencies(for: this),
       settings: buildSettings(for: this),
     )

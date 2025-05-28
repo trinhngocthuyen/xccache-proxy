@@ -10,6 +10,7 @@ format:
 
 build:
 	swift build -c $(CONFIGURATION) --product xccache-proxy
+	cd .build/$(CONFIGURATION) && rm -rf xccache-proxy.zip && zip -r xccache-proxy.zip xccache-proxy
 
 local.cp:
 	cp .build/$(CONFIGURATION)/xccache-proxy ../xccache/libexec/

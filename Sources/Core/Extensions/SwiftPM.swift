@@ -8,12 +8,12 @@ import struct TSCUtility.Version
 package typealias AbsolutePath = Basics.AbsolutePath
 
 extension URL {
-  func subDirs() -> [URL] {
-    FileManager.default.enumerator(
+  func subPaths() throws -> [URL] {
+    try FileManager.default.contentsOfDirectory(
       at: self,
-      includingPropertiesForKeys: [.isDirectoryKey],
+      includingPropertiesForKeys: [],
       options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants],
-    )?.compactMap { $0 as? URL } ?? []
+    )
   }
 }
 
@@ -31,12 +31,17 @@ extension AbsolutePath {
     FileManager.default.createFile(atPath: pathString, contents: nil)
   }
 
-  func subDirs() throws -> [AbsolutePath] {
-    try asURL.subDirs().map { try .init(validating: $0.path()) }
+  func subPaths() throws -> [AbsolutePath] {
+    try asURL.subPaths().map { try .init(validating: $0.path()) }
   }
 
   func exists() -> Bool {
     FileManager.default.fileExists(atPath: pathString)
+  }
+
+  func recreate() throws {
+    if exists() { try remove() }
+    try mkdir()
   }
 
   func remove() throws {
