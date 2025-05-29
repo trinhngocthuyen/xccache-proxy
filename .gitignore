@@ -35,3 +35,5 @@ fastlane/test_output
 .logs/
 .xcconfigs/
 xccache/
+
+artifacts/
