@@ -37,6 +37,9 @@ struct ProxyPackage: ProxyPackageProtocol {
     )
     try pkgDir.appending("xccache.src").symlink(to: bare.path)
 
+    // Symlink to root's headers which expose... all headers
+    try xccacheHeadersPath.symlink(to: proxiesDir.appending(relative: "../.headers"))
+
     // NOTE: This is a workaround to make dirs in a bare package show up in Xcode.
     // It's very strange that sometimes Xcode only displays the manifest for this case.
     // Here, we're creating symlinks to files/folders under the bare package.
@@ -69,7 +72,7 @@ struct ProxyPackage: ProxyPackageProtocol {
       return try .init(name: this.name, path: relativePath.pathString, type: .binary)
     }
     return try this.withChanges(
-      path: "xccache.src/\(this.srcPath)",
+      path: this.xccacheSrcPath,
       dependencies: recursiveTargetDependencies(for: this),
       settings: buildSettings(for: this),
     )

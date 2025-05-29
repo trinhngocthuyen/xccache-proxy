@@ -5,6 +5,7 @@ protocol ProxyPackageProtocol {
   var cache: BinariesCache { get }
   var graph: ModulesGraph { get }
   var bare: ResolvedPackage { get }
+  var pkgDir: AbsolutePath { get }
   var proxiesDir: AbsolutePath { get }
 
   func generate() throws
@@ -12,6 +13,7 @@ protocol ProxyPackageProtocol {
 
 extension ProxyPackageProtocol {
   var manifest: Manifest { bare.manifest }
+  var xccacheHeadersPath: AbsolutePath { pkgDir.appending("xccache.headers") }
 
   func isBinaryMacro(_ m: ResolvedModule) -> Bool {
     m.type == .macro && cache.hit(m.name)
@@ -59,10 +61,20 @@ extension ProxyPackageProtocol {
   }
 
   func buildSettings(for this: TargetDescription) throws -> [TargetBuildSettingDescription.Setting] {
+    try this.settings + macroBuildSettings(for: this) + headerSearchPathSettings(for: this)
+  }
+
+  private func macroBuildSettings(for this: TargetDescription) throws -> [TargetBuildSettingDescription.Setting] {
     let modules = try graph.recursiveModules(for: this.dependencies, excludeMacroDeps: true)
     let macroFlags = modules
       .compactMap { cache.binaryPath(for: $0.name, ext: "macro") }
       .flatMap { p in ["-load-plugin-executable", "\(p.pathString)#\(p.basenameWithoutExt)"] }
-    return this.settings + [.init(tool: .swift, kind: .unsafeFlags(macroFlags), condition: nil)]
+    return macroFlags.isEmpty ? [] : [.init(tool: .swift, kind: .unsafeFlags(macroFlags), condition: nil)]
+  }
+
+  private func headerSearchPathSettings(for this: TargetDescription) throws -> [TargetBuildSettingDescription.Setting] {
+    guard let module = graph.module(for: this.name), module.underlying is ClangModule else { return [] }
+    let relativeHeadersPath = xccacheHeadersPath.relative(to: pkgDir.appending(relative: this.xccacheSrcPath))
+    return [.init(tool: .c, kind: .headerSearchPath(relativeHeadersPath.pathString))]
   }
 }
