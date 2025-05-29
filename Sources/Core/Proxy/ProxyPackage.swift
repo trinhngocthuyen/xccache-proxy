@@ -35,12 +35,18 @@ struct ProxyPackage: ProxyPackageProtocol {
       to: pkgDir.appending("Package.swift"),
       additionalImportModuleNames: manifest.hasMacro() ? ["CompilerPluginSupport"] : [],
     )
-    try pkgDir.appending(".src").symlink(to: bare.path)
+    try pkgDir.appending("xccache.src").symlink(to: bare.path)
 
     // NOTE: This is a workaround to make dirs in a bare package show up in Xcode.
-    // It's very strange that dirs matching certain names are randomly hidden by Xcode.
+    // It's very strange that sometimes Xcode only displays the manifest for this case.
+    // Here, we're creating symlinks to files/folders under the bare package.
+    // Note that for manifests (Package.swift) under the bare package, we're using `bare.swift`
+    // so that Xcode doesn't recognize them as manifests and display files/folders accordingly.
     try bare.path.subPaths().forEach { p in
-      try pkgDir.appending(components: ["pkg.root", p.basename]).symlink(to: p)
+      let basename = if p.basename.starts(with: "Package"), p.extension == "swift" {
+        "\(p.basenameWithoutExt).bare.swift"
+      } else { p.basename }
+      try pkgDir.appending(basename).symlink(to: p)
     }
   }
 
@@ -63,7 +69,7 @@ struct ProxyPackage: ProxyPackageProtocol {
       return try .init(name: this.name, path: relativePath.pathString, type: .binary)
     }
     return try this.withChanges(
-      path: ".src/\(this.srcPath)",
+      path: "xccache.src/\(this.srcPath)",
       dependencies: recursiveTargetDependencies(for: this),
       settings: buildSettings(for: this),
     )
