@@ -38,7 +38,7 @@ package class UmbrellaGenerator {
 
     // Create auxiliary dirs & files
     try manifest.targets.forEach { target in
-      let p = try umbrellaDir.appending(relative: target.srcPath).mkdir()
+      let p = try umbrellaDir.appending(relative: target.srcPath).recreate()
       p.appending("dummy.swift").touch()
     }
     log.info("-> Umbrella manifest: \(manifestPath)".green)

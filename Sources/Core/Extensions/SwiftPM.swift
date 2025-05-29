@@ -39,9 +39,11 @@ extension AbsolutePath {
     FileManager.default.fileExists(atPath: pathString)
   }
 
-  func recreate() throws {
+  @discardableResult
+  func recreate() throws -> Self {
     if exists() { try remove() }
     try mkdir()
+    return self
   }
 
   func remove() throws {
