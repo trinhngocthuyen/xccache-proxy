@@ -24,12 +24,11 @@ final class GraphGenerator {
     }
     let fullName: (ResolvedModule) -> String = { shortNameToFullName[$0.name] ?? $0.name }
 
-    let rootModules = graph.rootPackages.flatMap(\.modules)
-    let modules = try rootModules.flatMap { try $0.recursiveModules(excludeMacroDeps: true) }.unique()
+    let modules = try graph.recursiveModulesFromRoot(excludeMacroDeps: true)
     let directDeps = try modules.toDictionary { m in
       try (fullName(m), m.directModules(excludeMacroDeps: true).map(fullName))
     }
-    let macros = try rootModules.toDictionary { m in
+    let macros = try graph.rootModules.toDictionary { m in
       let paths = try m.recursiveModules(excludeMacroDeps: true)
         .compactMap { d in cache.binaryPath(for: d.name, ext: "macro") }
         .map(\.pathString)

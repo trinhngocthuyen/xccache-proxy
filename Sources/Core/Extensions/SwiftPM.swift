@@ -6,6 +6,7 @@ import TSCBasic
 import struct TSCUtility.Version
 
 package typealias AbsolutePath = Basics.AbsolutePath
+package typealias RelativePath = Basics.RelativePath
 
 extension URL {
   func subPaths() throws -> [URL] {
@@ -207,9 +208,8 @@ extension TargetDescription {
     )
   }
 
-  var srcPath: String {
-    path ?? "\(type.defaultSrcRoot)/\(name)"
-  }
+  var srcPath: String { path ?? "\(type.defaultSrcRoot)/\(name)" }
+  var xccacheSrcPath: String { "xccache.src/\(srcPath)" }
 }
 
 extension TargetDescription.TargetKind {
@@ -293,6 +293,15 @@ extension ModulesGraph {
     case .target:
       return nil
     }
+  }
+
+  var rootModules: [ResolvedModule] { rootPackages.flatMap(\.modules) }
+
+  func recursiveModulesFromRoot(excludeMacroDeps: Bool = false) throws -> [ResolvedModule] {
+    try rootPackages
+      .flatMap(\.modules)
+      .flatMap { try $0.recursiveModules(excludeMacroDeps: excludeMacroDeps) }
+      .unique()
   }
 
   func recursiveModules(
