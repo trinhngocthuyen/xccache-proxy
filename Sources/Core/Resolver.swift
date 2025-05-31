@@ -24,7 +24,7 @@ package class Resolver {
   }
 
   package func run() async throws {
-    log.info("🧩 Resolving package dependencies of \(pkgDir.basename)...".blue)
+    log.info("Resolving package dependencies of \(pkgDir.basename)...".blue)
 
     let pollingLogTask = Task.detached {
       for i in 3 ..< 20 {

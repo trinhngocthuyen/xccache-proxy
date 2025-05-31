@@ -29,7 +29,7 @@ package class ProxyGenerator {
   }
 
   package func run() async throws {
-    log.info("🔍 Generating proxy packages...".blue)
+    log.info("Generating proxy packages...".blue)
 
     graph = try await workspace.loadPackageGraph(rootPath: umbrellaDir, observabilityScope: .logging)
 

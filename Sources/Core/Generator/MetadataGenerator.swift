@@ -24,7 +24,7 @@ package class MetadataGenerator {
   }
 
   package func run() async throws {
-    log.info("🪄  Generating metadata...".blue)
+    log.info("Generating metadata...".blue)
     let graph = try await loadGraph()
 
     try outDir.mkdir()

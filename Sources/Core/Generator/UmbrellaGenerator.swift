@@ -22,7 +22,7 @@ package class UmbrellaGenerator {
   }
 
   package func run() async throws {
-    log.info("🪄  Generating umbrella package...".blue)
+    log.info("Generating umbrella package...".blue)
 
     let manifest = try Manifest.create(
       displayName: "xccache",
