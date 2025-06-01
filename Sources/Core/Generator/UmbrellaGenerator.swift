@@ -45,7 +45,7 @@ package class UmbrellaGenerator {
   }
 
   private func platforms() -> [PlatformDescription] {
-    lockfile.platforms().map { .init(name: $0.key.lowercased(), version: $0.value) }
+    lockfile.platforms().map { .fromXcodeprojPlatform(name: $0.key.lowercased(), version: $0.value) }
   }
 
   private func dependencies() throws -> [PackageDependency] {
@@ -111,5 +111,12 @@ package class UmbrellaGenerator {
   private func targetDependencyFrom(_ s: String) -> TargetDescription.Dependency {
     let cmps = s.split(separator: "/").map(String.init)
     return .product(name: cmps[1], package: cmps[0])
+  }
+}
+
+private extension PlatformDescription {
+  static func fromXcodeprojPlatform(name: String, version: String) -> PlatformDescription {
+    let mapping = ["osx": "macos"]
+    return .init(name: mapping[name.lowercased()] ?? name.lowercased(), version: version)
   }
 }
