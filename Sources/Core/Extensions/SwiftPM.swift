@@ -66,13 +66,8 @@ extension AbsolutePath {
 }
 
 extension ObservabilityScope {
-  static let logging = ObservabilitySystem { scope, diagnostic in
-    switch diagnostic.severity {
-    case .error: log.error(diagnostic.message)
-    case .warning: log.warning(diagnostic.message)
-    case .info: log.info(diagnostic.message)
-    case .debug: log.debug(diagnostic.message)
-    }
+  static let liveLog = ObservabilitySystem { scope, diagnostic in
+    log.liveOutput(diagnostic.message)
   }.topScope
 }
 

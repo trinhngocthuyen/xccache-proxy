@@ -14,7 +14,7 @@ extension CLI {
     var metadataDir: AbsolutePath?
 
     func run() async throws {
-      try await withLoggingError {
+      try await log.liveSection("Resolving umbrella package dependencies".blue) {
         parent.handleUniversalArgs()
 
         try await Resolver(

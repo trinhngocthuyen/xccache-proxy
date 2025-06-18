@@ -20,7 +20,7 @@ extension CLI {
     var binariesDir: AbsolutePath?
 
     func run() async throws {
-      try await withLoggingError {
+      try await log.liveSection("Generating proxy packages".blue) {
         parent.handleUniversalArgs()
 
         try await ProxyGenerator(

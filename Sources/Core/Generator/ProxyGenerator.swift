@@ -29,20 +29,12 @@ package class ProxyGenerator {
   }
 
   package func run() async throws {
-    log.info("Generating proxy packages...".blue)
-
-    graph = try await workspace.loadPackageGraph(rootPath: umbrellaDir, observabilityScope: .logging)
-
-    log.log(
-      format: "-> Loaded graph with %@, %@",
-      "\(graph.packages.count) packages".green,
-      "\(graph.reachableModules.count) modules".cyan,
-    )
-
+    graph = try await workspace.loadPackageGraph(rootPath: umbrellaDir, observabilityScope: .liveLog)
     try cache.update(
       modules: graph.reachableModules.map(\.name),
       artifacts: graph.binaryArtifacts.flatMap { $1.values.map(\.path) },
     )
+
     await withThrowingTaskGroup(of: Void.self) { group in
       let nonRootPkgs = graph.packages.filter { !graph.isRootPackage($0) }
       group.addTasks(values: nonRootPkgs) { pkg in
@@ -63,6 +55,6 @@ package class ProxyGenerator {
       }
     }
     try GraphGenerator(graph: graph, cache: cache, outPath: outDir.appending("graph.json")).generate()
-    log.info("-> Proxy manifest: \(outDir)/Package.swift".green)
+    log.live?.msgOnDone("-> Proxy manifest: \(outDir)/Package.swift".green)
   }
 }

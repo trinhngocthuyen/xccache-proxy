@@ -3,7 +3,7 @@ import os
 @preconcurrency import Rainbow
 
 package nonisolated(unsafe) let log = {
-  if ProcessInfo.processInfo.environment["FORCE_OUTPUT"] == "console" {
+  if ENV["FORCE_OUTPUT"] == "console" {
     Rainbow.outputTarget = .console
   }
   return Logger()
@@ -59,8 +59,7 @@ private class CompositeLogHandler: LogHandler {
   }
 
   override init() {
-    let isRunningInXcode = ProcessInfo.processInfo.environment["__XCODE_BUILT_PRODUCTS_DIR_PATHS"] != nil
-    children = isRunningInXcode ? [OSLogHandler()] : [OSLogHandler(), ConsoleLogHandler()]
+    children = ENV.isRunningInsideXcode() ? [OSLogHandler()] : [OSLogHandler(), ConsoleLogHandler()]
   }
 
   override func handle(_ msg: String, level: Logger.Level) {
@@ -81,7 +80,7 @@ package struct Logger {
   package func info(_ msg: String) { handler.handle(msg, level: .info) }
   package func warning(_ msg: String) { handler.handle(msg, level: .warning) }
   package func error(_ msg: String) { handler.handle(msg, level: .error) }
-
+  package func log(_ msg: String, level: Level = .info) { handler.handle(msg, level: level) }
   package func log(format: String, _ arguments: any CVarArg..., level: Level = .info) {
     handler.handle(String(format: format, arguments: arguments), level: level)
   }

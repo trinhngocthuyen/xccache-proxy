@@ -24,7 +24,10 @@ package class MetadataGenerator {
   }
 
   package func run() async throws {
-    log.info("Generating metadata...".blue)
+    try await _run()
+  }
+
+  private func _run() async throws {
     let graph = try await loadGraph()
 
     try outDir.mkdir()
@@ -38,11 +41,11 @@ package class MetadataGenerator {
         }
       }
     }
-    log.info("-> Metadata of packages: \(outDir)".green)
+    log.live?.msgOnDone("-> Metadata of packages: \(outDir)".green)
   }
 
   private func loadGraph() async throws -> ModulesGraph {
     if let graph { return graph }
-    return try await Workspace(forRootPackage: pkgDir).loadPackageGraph(rootPath: pkgDir, observabilityScope: .logging)
+    return try await Workspace(forRootPackage: pkgDir).loadPackageGraph(rootPath: pkgDir, observabilityScope: .liveLog)
   }
 }

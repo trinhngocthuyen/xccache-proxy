@@ -24,20 +24,8 @@ package class Resolver {
   }
 
   package func run() async throws {
-    log.info("Resolving package dependencies of \(pkgDir.basename)...".blue)
-
-    let pollingLogTask = Task.detached {
-      for i in 3 ..< 20 {
-        try await Task.sleep(for: .seconds(i))
-        log.info(
-          "⏳ Still resolving... This might take a while for the first time. Subsequent runs should be faster...".yellow,
-        )
-      }
-    }
-
-    let graph = try await workspace.loadPackageGraph(rootPath: pkgDir, observabilityScope: .logging)
-    pollingLogTask.cancel()
-
+    log.liveOutput("This might take a while for the first time. Subsequent runs should be faster".yellow, sticky: true)
+    let graph = try await workspace.loadPackageGraph(rootPath: pkgDir, observabilityScope: .liveLog)
     if let metadataDir {
       try await MetadataGenerator(
         graph: graph,
