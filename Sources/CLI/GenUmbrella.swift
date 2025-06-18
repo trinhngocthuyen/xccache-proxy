@@ -14,7 +14,7 @@ extension CLI {
     var outDir: AbsolutePath?
 
     func run() async throws {
-      try await withLoggingError {
+      try await log.liveSection("Generating umbrella package".blue) {
         parent.handleUniversalArgs()
 
         try await UmbrellaGenerator(

@@ -22,7 +22,7 @@ struct ProxyPackage: ProxyPackageProtocol {
   }
 
   func generate() throws {
-    log.debug("📦 Generate proxy for: \(bare.id.description.green)")
+    log.liveOutput("📦 Generate proxy for: \(bare.id.description.green)")
 
     try pkgDir.recreate()
     let proxy = try manifest.withChanges(
