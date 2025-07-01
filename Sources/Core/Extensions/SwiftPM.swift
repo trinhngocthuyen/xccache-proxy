@@ -82,6 +82,7 @@ extension Manifest {
 
   static func create(
     displayName: String,
+    packageIdentity: PackageIdentity? = nil,
     path: AbsolutePath,
     packageKind: PackageReference.Kind,
     packageLocation: String,
@@ -102,10 +103,11 @@ extension Manifest {
   ) -> Manifest {
     Manifest(
       displayName: displayName,
+      packageIdentity: packageIdentity ?? .plain(path.basename.lowercased()),
       path: path,
       packageKind: packageKind,
       packageLocation: packageLocation,
-      defaultLocalization: nil,
+      defaultLocalization: defaultLocalization,
       platforms: platforms,
       version: version,
       revision: revision,
@@ -130,6 +132,7 @@ extension Manifest {
   ) -> Manifest {
     Manifest(
       displayName: displayName,
+      packageIdentity: packageIdentity,
       path: pkgDir.map { $0.appending(path.basename) } ?? self.path,
       packageKind: packageKind,
       packageLocation: packageLocation,
